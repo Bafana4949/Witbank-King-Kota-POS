@@ -1,0 +1,84 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "System user profiles",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "email": { "type": "string" },
+        "name": { "type": "string" },
+        "role": { "type": "string", "enum": ["admin", "staff", "customer"] }
+      },
+      "required": ["id", "email", "name", "role"]
+    },
+    "MenuItem": {
+      "title": "MenuItem",
+      "description": "Menu items availability and pricing",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "price": { "type": "number" },
+        "costPrice": { "type": "number" },
+        "category": { "type": "string" },
+        "description": { "type": "string" },
+        "isAvailable": { "type": "boolean" },
+        "updatedAt": { "type": "number" },
+        "updatedBy": { "type": "string" }
+      },
+      "required": ["id", "name", "price", "costPrice", "category", "isAvailable"]
+    },
+    "Order": {
+      "title": "Order",
+      "description": "Customer orders",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "items": { "type": "array" },
+        "total": { "type": "number" },
+        "totalCost": { "type": "number" },
+        "cashPaid": { "type": "number" },
+        "change": { "type": "number" },
+        "timestamp": { "type": "number" },
+        "status": { "type": "string", "enum": ["pending", "accepted", "preparing", "ready", "completed", "cancelled"] },
+        "userId": { "type": "string" },
+        "customerEmail": { "type": "string" }
+      },
+      "required": ["id", "items", "total", "totalCost", "timestamp", "status", "userId"]
+    },
+    "AuditLog": {
+      "title": "AuditLog",
+      "description": "Logs of menu management actions",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "timestamp": { "type": "number" },
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "action": { "type": "string", "enum": ["create", "update", "delete"] },
+        "itemName": { "type": "string" },
+        "changes": { "type": "string" }
+      },
+      "required": ["id", "timestamp", "userId", "userName", "action", "itemName", "changes"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profiles"
+    },
+    "/menu": {
+      "schema": "MenuItem",
+      "description": "Active menu items"
+    },
+    "/orders/{orderId}": {
+      "schema": "Order",
+      "description": "Customer orders"
+    },
+    "/auditLogs/{logId}": {
+      "schema": "AuditLog",
+      "description": "Menu change history"
+    }
+  }
+}
