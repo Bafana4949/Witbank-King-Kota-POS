@@ -19,3 +19,19 @@
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+@layer utilities {
+  .glass {
+    @apply bg-white/70 backdrop-blur-md border border-white/20;
+  }
+  .glass-dark {
+    @apply bg-slate-900/70 backdrop-blur-md border border-white/10;
+  }
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-orange-500 to-red-600;
+  }
+}
+
+.hero-gradient {
+  background: radial-gradient(circle at 10% 20%, rgb(255, 252, 243) 0%, rgb(255, 240, 210) 90.1%);
+}
