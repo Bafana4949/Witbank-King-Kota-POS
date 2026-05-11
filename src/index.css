@@ -47,3 +47,7 @@
 .hero-gradient {
   background: radial-gradient(circle at 10% 20%, rgb(255, 252, 243) 0%, rgb(255, 240, 210) 90.1%);
 }
+
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
+}

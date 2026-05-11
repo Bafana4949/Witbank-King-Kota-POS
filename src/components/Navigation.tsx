@@ -57,7 +57,11 @@ export const Sidebar = () => {
       </nav>
 
       <div className="mt-auto flex flex-col items-center space-y-6 pb-4">
-        <button className="w-10 h-10 bg-slate-800 text-slate-400 hover:text-white rounded-lg flex items-center justify-center transition-colors">
+        <button 
+          onClick={() => setActiveTab('menu')}
+          className={`w-10 h-10 rounded-lg flex items-center justify-center transition-all ${activeTab === 'menu' ? 'bg-slate-800 border-2 border-orange-500 text-orange-500' : 'bg-slate-800 text-slate-400 hover:text-white'}`}
+          title="Settings"
+        >
           <Settings size={20} />
         </button>
       </div>
@@ -81,7 +85,7 @@ export const BottomNav = () => {
   const { activeTab, setActiveTab, currentUser } = usePOS();
 
   return (
-    <nav className="sm:hidden fixed bottom-0 left-0 right-0 h-16 bg-slate-900 flex items-center justify-around text-white z-[100] px-2 border-t border-slate-800">
+    <nav className="sm:hidden fixed bottom-0 left-0 right-0 h-20 pb-safe bg-slate-900 flex items-center justify-around text-white z-[100] px-2 border-t border-slate-800 shadow-[0_-10px_20px_-5px_rgba(0,0,0,0.3)]">
       <MobileNavItem active={activeTab === 'order'} onClick={() => setActiveTab('order')} icon={<ShoppingBag size={20} />} label="Order" />
       {currentUser?.role === 'customer' && (
         <MobileNavItem active={activeTab === 'history'} onClick={() => setActiveTab('history')} icon={<History size={20} />} label="History" />
