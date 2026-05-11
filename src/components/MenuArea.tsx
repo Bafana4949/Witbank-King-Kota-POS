@@ -12,8 +12,8 @@ export const ProductCard = ({ item }: { item: MenuItem }) => {
 
   return (
     <motion.div
-      whileHover={{ y: -4, shadow: "0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)" }}
       key={item.id}
+      whileHover={{ y: -4, shadow: "0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)" }}
       className="bg-white p-4 rounded-2xl border border-slate-100 hover:border-orange-200 transition-all text-left flex flex-col justify-between h-48 group relative cursor-pointer"
       onClick={() => setShowItemDetail(item)}
     >
@@ -72,12 +72,12 @@ export const MenuArea = () => {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        <div className="flex gap-3 overflow-x-auto pb-1 scrollbar-hide py-1">
+        <div className="flex gap-3 overflow-x-auto pb-1 scrollbar-hide py-1 touch-pan-x snap-x">
           {CATEGORIES.map(cat => (
             <button
               key={cat}
               onClick={() => setActiveCategory(cat)}
-              className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border shrink-0 ${activeCategory === cat
+              className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border shrink-0 snap-start active:scale-95 ${activeCategory === cat
                   ? 'bg-slate-900 text-white border-slate-900 shadow-xl shadow-slate-900/10 scale-105'
                   : 'bg-white text-slate-400 border-slate-100 hover:border-slate-300 hover:text-slate-600'
                 }`}
@@ -96,7 +96,7 @@ export const MenuArea = () => {
             className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-8"
           >
             {filteredMenuItems.map(item => (
-              <ProductCard key={item.id} item={item} />
+              <ProductCard item={item} />
             ))}
           </motion.div>
         </AnimatePresence>
