@@ -1,6 +1,7 @@
 import React from 'react';
-import { ShoppingBag } from 'lucide-react';
+import { ShoppingBag, Printer } from 'lucide-react';
 import { usePOS } from '../context/POSContext';
+import { printOrderTicket } from '../utils/print';
 
 const CURRENCY = 'R';
 
@@ -37,7 +38,7 @@ export const HistoryTab = () => {
                       {order.items.map(i => i.name).join(', ')}
                     </p>
                     <p className="text-[10px] font-bold text-slate-400 uppercase mt-0.5">
-                      {new Date(order.timestamp).toLocaleString()}
+                      {new Date(order.timestamp).toLocaleString()} • {order.paymentMethod?.replace('_', ' ') || 'CASH'}
                     </p>
                   </div>
                 </div>
@@ -50,7 +51,16 @@ export const HistoryTab = () => {
                     }`}>
                     {order.status}
                   </span>
-                  <p className="text-lg font-black text-slate-900 mt-2">{CURRENCY}{order.total.toFixed(2)}</p>
+                  <div className="flex items-center gap-4 mt-2 justify-end">
+                    <button 
+                      onClick={() => printOrderTicket(order)}
+                      className="p-2 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-slate-900 transition-all"
+                      title="Print Ticket"
+                    >
+                      <Printer size={18} />
+                    </button>
+                    <p className="text-lg font-black text-slate-900">{CURRENCY}{order.total.toFixed(2)}</p>
+                  </div>
                 </div>
               </div>
             ))

@@ -20,7 +20,7 @@ import {
   deleteDoc 
 } from 'firebase/firestore';
 import { auth, db } from '../firebase';
-import { MenuItem, CartItem, Order, User, AuditLog } from '../types';
+import { MenuItem, CartItem, Order, User, AuditLog, PaymentMethod } from '../types';
 import { MENU_ITEMS } from '../constants';
 import { handleFirestoreError, OperationType } from '../utils/firestore';
 
@@ -99,6 +99,8 @@ interface POSContextType {
   addNotification: (msg: string) => void;
   orderError: string;
   setOrderError: (err: string) => void;
+  paymentMethod: PaymentMethod;
+  setPaymentMethod: (method: PaymentMethod) => void;
 }
 
 const POSContext = createContext<POSContextType | undefined>(undefined);
@@ -128,6 +130,7 @@ export function POSProvider({ children }: { children: ReactNode }) {
   const [notifications, setNotifications] = useState<{ id: string, message: string }[]>([]);
   const [parkedOrders, setParkedOrders] = useState<CartItem[][]>([]);
   const [orderError, setOrderError] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('cash');
 
   // Auth Listener
   useEffect(() => {
@@ -211,7 +214,22 @@ export function POSProvider({ children }: { children: ReactNode }) {
     try {
       await signInWithEmailAndPassword(auth, email, pass);
     } catch (error: any) {
-      setAuthError(error.message || 'Login failed');
+      console.error("Login error:", error.code, error.message);
+      let message = 'Login failed. Please try again.';
+      
+      if (error.code === 'auth/invalid-credential' || 
+          error.code === 'auth/user-not-found' || 
+          error.code === 'auth/wrong-password') {
+        message = 'invalid credentials';
+      } else if (error.code === 'auth/invalid-email') {
+        message = 'Please enter a valid email address';
+      } else if (error.code === 'auth/network-request-failed') {
+        message = 'Network error. Please check your connection.';
+      } else if (error.code === 'auth/too-many-requests') {
+        message = 'Too many failed attempts. Please try again later.';
+      }
+      
+      setAuthError(message);
       throw error;
     }
   };
@@ -233,7 +251,18 @@ export function POSProvider({ children }: { children: ReactNode }) {
       setCurrentUser(userData);
       setShowAuthModal(false);
     } catch (error: any) {
-      setAuthError(error.message || 'Signup failed');
+      console.error("Signup error:", error.code, error.message);
+      let message = 'Signup failed. Please try again.';
+      
+      if (error.code === 'auth/email-already-in-use') {
+        message = 'This email is already registered';
+      } else if (error.code === 'auth/weak-password') {
+        message = 'Password should be at least 6 characters';
+      } else if (error.code === 'auth/invalid-email') {
+        message = 'Please enter a valid email address';
+      }
+      
+      setAuthError(message);
       throw error;
     }
   };
@@ -340,7 +369,7 @@ export function POSProvider({ children }: { children: ReactNode }) {
   };
 
   const removeFromCart = (id: string) => setCart(prev => prev.filter(item => item.id !== id));
-  const resetOrder = () => { setCart([]); setCashPaid(''); setShowPaymentModal(false); };
+  const resetOrder = () => { setCart([]); setCashPaid(''); setShowPaymentModal(false); setPaymentMethod('cash'); };
 
   const submitOrder = async () => {
     if (!currentUser) return;
@@ -357,9 +386,10 @@ export function POSProvider({ children }: { children: ReactNode }) {
       cashPaid: paid,
       change: Math.max(0, paid - orderTotal),
       timestamp: Date.now(),
-      status: 'pending',
+      status: (paymentMethod === 'bank_transfer' || currentUser.role === 'customer') ? 'awaiting_payment' : 'pending',
       userId: currentUser.id,
-      customerEmail: currentUser.email
+      customerEmail: currentUser.email,
+      paymentMethod: paymentMethod
     };
     try {
       await setDoc(doc(db, 'orders', orderId), newOrder);
@@ -431,7 +461,7 @@ export function POSProvider({ children }: { children: ReactNode }) {
       selectedOrder, setSelectedOrder, showItemDetail, setShowItemDetail, showMenuModal, setShowMenuModal,
       menuForm, setMenuForm, resetMenuForm, isCartOpen,
       setIsCartOpen, auditLogs, dailyStats, notifications, removeNotification, addNotification,
-      orderError, setOrderError
+      orderError, setOrderError, paymentMethod, setPaymentMethod
     }}>
       {children}
     </POSContext.Provider>

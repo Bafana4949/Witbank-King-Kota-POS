@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, CheckCircle2, ChevronRight, ShoppingBag, Utensils, ChefHat } from 'lucide-react';
+import { X, CheckCircle2, ChevronRight, ShoppingBag, Utensils, ChefHat, Wallet, CreditCard, Landmark, Info } from 'lucide-react';
 import { usePOS } from '../context/POSContext';
 import { MenuItem, Order } from '../types';
 import logo from '../../pictures/fastfood_logo.png';
+import { BANK_DETAILS } from '../constants';
 
 const CURRENCY = 'R';
 
@@ -137,7 +138,18 @@ const AuthModal = () => {
 };
 
 const PaymentModal = () => {
-  const { showPaymentModal, setShowPaymentModal, cartTotal, cashPaid, setCashPaid, changeDue, submitOrder, orderError } = usePOS();
+  const { 
+    showPaymentModal, 
+    setShowPaymentModal, 
+    cartTotal, 
+    cashPaid, 
+    setCashPaid, 
+    changeDue, 
+    submitOrder, 
+    orderError,
+    paymentMethod,
+    setPaymentMethod
+  } = usePOS();
   
   if (!showPaymentModal) return null;
 
@@ -160,6 +172,27 @@ const PaymentModal = () => {
           </div>
 
           <div className="space-y-6">
+            <div className="grid grid-cols-3 gap-3">
+              {[
+                { id: 'cash', label: 'Cash at Till', icon: <Wallet size={20} /> },
+                { id: 'card', label: 'Physical Card', icon: <CreditCard size={20} /> },
+                { id: 'bank_transfer', label: 'Bank Transfer', icon: <Landmark size={20} /> },
+              ].map(method => (
+                <button
+                  key={method.id}
+                  onClick={() => setPaymentMethod(method.id as any)}
+                  className={`flex flex-col items-center justify-center p-4 rounded-2xl border-2 transition-all gap-2 ${
+                    paymentMethod === method.id 
+                      ? 'border-orange-500 bg-orange-50 text-orange-600 ring-4 ring-orange-500/10' 
+                      : 'border-slate-100 bg-slate-50 text-slate-400 hover:border-slate-200'
+                  }`}
+                >
+                  {method.icon}
+                  <span className="text-[9px] font-black uppercase tracking-tight">{method.label}</span>
+                </button>
+              ))}
+            </div>
+
             <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100">
               <div className="flex justify-between items-center mb-1">
                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Balance Due</span>
@@ -170,35 +203,82 @@ const PaymentModal = () => {
               </div>
             </div>
 
-            <div className="space-y-3">
-              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Cash Tendered</label>
-              <div className="relative">
-                <span className="absolute left-6 top-1/2 -translate-y-1/2 font-black text-2xl text-slate-400">{CURRENCY}</span>
-                <input
-                  autoFocus
-                  type="number"
-                  placeholder="0.00"
-                  className="w-full bg-slate-50 border-2 border-slate-200 rounded-2xl py-6 pl-14 pr-6 text-3xl font-black focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500 transition-all placeholder:text-slate-200"
-                  value={cashPaid}
-                  onChange={(e) => setCashPaid(e.target.value)}
-                />
+            {paymentMethod === 'cash' && (
+              <div className="space-y-3">
+                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Cash Tendered</label>
+                <div className="relative">
+                  <span className="absolute left-6 top-1/2 -translate-y-1/2 font-black text-2xl text-slate-400">{CURRENCY}</span>
+                  <input
+                    autoFocus
+                    type="number"
+                    placeholder="0.00"
+                    className="w-full bg-slate-50 border-2 border-slate-200 rounded-2xl py-6 pl-14 pr-6 text-3xl font-black focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500 transition-all placeholder:text-slate-200"
+                    value={cashPaid}
+                    onChange={(e) => setCashPaid(e.target.value)}
+                  />
+                </div>
+                
+                <div className="flex gap-2">
+                  {[50, 100, 200, 500].map(amount => (
+                    <button
+                      key={amount}
+                      onClick={() => setCashPaid(amount.toString())}
+                      className="flex-1 bg-white border-2 border-slate-100 hover:border-orange-500 hover:text-orange-600 py-3 rounded-xl font-black transition-all text-xs shadow-sm"
+                    >
+                      {CURRENCY}{amount}
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
-            <div className="flex gap-2">
-              {[50, 100, 200, 500].map(amount => (
-                <button
-                  key={amount}
-                  onClick={() => setCashPaid(amount.toString())}
-                  className="flex-1 bg-white border-2 border-slate-100 hover:border-orange-500 hover:text-orange-600 py-3 rounded-xl font-black transition-all text-xs shadow-sm"
-                >
-                  {CURRENCY}{amount}
-                </button>
-              ))}
-            </div>
+            {paymentMethod !== 'bank_transfer' && (
+              <motion.div 
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-orange-50 border border-orange-100 p-6 rounded-2xl space-y-3"
+              >
+                <div className="flex items-center gap-3 text-orange-600">
+                  <Info size={20} />
+                  <span className="text-[10px] font-black uppercase tracking-widest">Action Required</span>
+                </div>
+                <p className="text-xs font-bold text-orange-800 leading-relaxed">
+                  Please proceed to the main counter (Till) to settle your payment. 
+                  Your order will be <span className="underline">sent to the kitchen only after</span> the cashier confirms your payment.
+                </p>
+              </motion.div>
+            )}
+
+            {paymentMethod === 'bank_transfer' && (
+              <motion.div 
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-blue-50 border border-blue-100 p-6 rounded-2xl space-y-4"
+              >
+                <div className="flex items-center gap-3 text-blue-600">
+                  <Info size={20} />
+                  <span className="text-[10px] font-black uppercase tracking-widest">Bank Transfer Instructions</span>
+                </div>
+                <div className="space-y-2 text-xs font-bold text-blue-800">
+                  <div className="flex justify-between"><span>Bank:</span> <span>{BANK_DETAILS.bankName}</span></div>
+                  <div className="flex justify-between"><span>Account Name:</span> <span>{BANK_DETAILS.accountName}</span></div>
+                  <div className="flex justify-between"><span>Account Number:</span> <span className="font-mono">{BANK_DETAILS.accountNumber}</span></div>
+                  <div className="flex justify-between"><span>Branch Code:</span> <span className="font-mono">{BANK_DETAILS.branchCode}</span></div>
+                  <div className="flex justify-between border-t border-blue-200 pt-2 mt-2">
+                    <span>Reference:</span> 
+                    <span className="font-black text-blue-900">{BANK_DETAILS.referencePrefix}ORD...</span>
+                  </div>
+                </div>
+                <p className="text-[9px] text-blue-600 italic font-medium leading-tight">
+                  * Please use your Order ID as the reference. Your order will be processed once payment reflects in our account.
+                </p>
+              </motion.div>
+            )}
+
+
 
             <AnimatePresence>
-              {parseFloat(cashPaid) > 0 && (
+              {paymentMethod === 'cash' && parseFloat(cashPaid) > 0 && (
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -233,11 +313,11 @@ const PaymentModal = () => {
           )}
 
           <button
-            disabled={parseFloat(cashPaid) < cartTotal}
+            disabled={paymentMethod === 'cash' && parseFloat(cashPaid) < cartTotal}
             onClick={submitOrder}
             className="w-full bg-slate-900 text-white font-black py-6 rounded-[24px] shadow-2xl hover:bg-orange-500 transition-all active:scale-[0.98] uppercase tracking-[0.2em] text-sm disabled:opacity-20 disabled:cursor-not-allowed group flex items-center justify-center gap-3"
           >
-            <span>Confirm & Send to Kitchen</span>
+            <span>{paymentMethod === 'bank_transfer' ? 'Submit for Verification' : 'Confirm & Send to Kitchen'}</span>
             <ChevronRight size={20} className="group-hover:translate-x-1 transition-transform" />
           </button>
         </div>
@@ -425,7 +505,7 @@ const MenuModal = () => {
 };
 
 const OrderDetailsModal = () => {
-  const { selectedOrder, setSelectedOrder, updateOrderStatus } = usePOS();
+  const { selectedOrder, setSelectedOrder, updateOrderStatus, currentUser } = usePOS();
   
   if (!selectedOrder) return null;
 
@@ -441,14 +521,23 @@ const OrderDetailsModal = () => {
             <div>
               <div className="flex items-center gap-3 mb-1">
                 <h3 className="text-2xl font-black text-slate-900 tracking-tight">{selectedOrder.id}</h3>
-                <span className={`text-[10px] font-black uppercase px-3 py-1 rounded-full border ${selectedOrder.status === 'completed' ? 'bg-green-50 text-green-600 border-green-100' :
+                 <span className={`text-[10px] font-black uppercase px-3 py-1 rounded-full border ${selectedOrder.status === 'completed' ? 'bg-green-50 text-green-600 border-green-100' :
                     selectedOrder.status === 'ready' ? 'bg-green-100 text-green-700 border-green-200' :
+                    selectedOrder.status === 'awaiting_payment' ? 'bg-purple-50 text-purple-600 border-purple-100' :
                       'bg-orange-50 text-orange-600 border-orange-100'
-                  }`}>{selectedOrder.status}</span>
+                  }`}>{selectedOrder.status.replace('_', ' ')}</span>
               </div>
               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
                 Ordered by {selectedOrder.customerEmail} • {new Date(selectedOrder.timestamp).toLocaleString()}
               </p>
+              <div className="flex items-center gap-2 mt-2">
+                <span className="text-[9px] font-black uppercase text-slate-500 tracking-wider flex items-center gap-1">
+                  Payment Method: 
+                  <span className="text-slate-900 bg-slate-100 px-2 py-0.5 rounded">
+                    {selectedOrder.paymentMethod?.replace('_', ' ') || 'CASH'}
+                  </span>
+                </span>
+              </div>
             </div>
             <button onClick={() => setSelectedOrder(null)} className="bg-slate-100 p-2 rounded-xl text-slate-400 hover:text-slate-900 transition-colors">
               <X size={20} />
@@ -476,11 +565,19 @@ const OrderDetailsModal = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4 pt-4">
-            {selectedOrder.status !== 'completed' && selectedOrder.status !== 'cancelled' && (
-              <>
+            <div className="grid grid-cols-2 gap-4 pt-4">
+              {selectedOrder.status === 'awaiting_payment' && (currentUser?.role === 'admin' || currentUser?.role === 'staff') && (
                 <button
-                  onClick={() => { updateOrderStatus(selectedOrder.id, 'completed'); setSelectedOrder(null); }}
+                  onClick={() => { updateOrderStatus(selectedOrder.id, 'pending'); setSelectedOrder(null); }}
+                  className="col-span-2 bg-blue-500 text-white font-black py-4 rounded-2xl shadow-lg hover:bg-blue-600 transition-all uppercase tracking-widest text-xs"
+                >
+                  Confirm {selectedOrder.paymentMethod?.replace('_', ' ').toUpperCase()} Payment
+                </button>
+              )}
+              {selectedOrder.status !== 'completed' && selectedOrder.status !== 'cancelled' && selectedOrder.status !== 'awaiting_payment' && (
+                <>
+                  <button
+                    onClick={() => { updateOrderStatus(selectedOrder.id, 'completed'); setSelectedOrder(null); }}
                   className="bg-green-500 text-white font-black py-4 rounded-2xl shadow-lg hover:bg-green-600 transition-all uppercase tracking-widest text-xs"
                 >
                   Mark as Completed

@@ -2,6 +2,7 @@ import React from 'react';
 import { motion } from 'motion/react';
 import { ChefHat, CheckCircle2, Clock } from 'lucide-react';
 import { usePOS } from '../context/POSContext';
+import { printOrderTicket } from '../utils/print';
 import logo from '../../pictures/fastfood_logo.png';
 
 export const KitchenTab = () => {
@@ -36,6 +37,7 @@ export const KitchenTab = () => {
             activeOrders.slice().reverse().map(order => (
               <div key={order.id} className={`bg-white rounded-2xl border-t-4 border border-slate-200 shadow-sm overflow-hidden flex flex-col transition-all ${order.status === 'pending' ? 'border-t-orange-500 shadow-orange-500/5' :
                   order.status === 'accepted' ? 'border-t-blue-500 shadow-blue-500/5' :
+                  order.status === 'awaiting_payment' ? 'border-t-purple-500 shadow-purple-500/5' :
                     'border-t-yellow-500 shadow-yellow-500/5 animate-pulse'
                 }`}>
                 <div className="p-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
@@ -43,8 +45,13 @@ export const KitchenTab = () => {
                     <div className="flex items-center gap-2">
                       <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{order.id}</div>
                       <span className={`text-[8px] font-black uppercase px-1.5 py-0.5 rounded ${order.status === 'pending' ? 'bg-orange-100 text-orange-600' :
-                          order.status === 'accepted' ? 'bg-blue-100 text-blue-600' : 'bg-yellow-100 text-yellow-600'
-                        }`}>{order.status}</span>
+                          order.status === 'accepted' ? 'bg-blue-100 text-blue-600' : 
+                          order.status === 'awaiting_payment' ? 'bg-purple-100 text-purple-600' : 
+                          'bg-yellow-100 text-yellow-600'
+                        }`}>{order.status.replace('_', ' ')}</span>
+                      <span className="text-[8px] font-black uppercase px-1.5 py-0.5 rounded bg-slate-100 text-slate-500">
+                        {order.paymentMethod?.replace('_', ' ') || 'CASH'}
+                      </span>
                     </div>
                     <div className="flex items-center gap-1 text-slate-800 font-black text-sm">
                       <Clock size={12} />
@@ -90,7 +97,10 @@ export const KitchenTab = () => {
                   ))}
                 </div>
                 <div className="p-4 bg-slate-50 border-t border-slate-100 mt-auto">
-                  <button className="w-full border border-slate-200 text-slate-400 py-1.5 rounded text-[10px] font-black uppercase hover:bg-slate-100 transition-colors">
+                  <button 
+                    onClick={() => printOrderTicket(order)}
+                    className="w-full border border-slate-200 text-slate-400 py-1.5 rounded text-[10px] font-black uppercase hover:bg-slate-100 hover:text-slate-900 transition-colors"
+                  >
                     PRINT TICKET
                   </button>
                 </div>

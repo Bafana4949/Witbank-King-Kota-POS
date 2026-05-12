@@ -40,3 +40,11 @@ export const MENU_ITEMS: MenuItem[] = [
 ];
 
 export const CATEGORIES = ['All', 'Kotas', 'Grills', 'Burgers', 'Chips', 'Sides', 'Drinks'];
+
+export const BANK_DETAILS = {
+  accountName: 'Witbank Express Grill',
+  bankName: 'First National Bank (FNB)',
+  accountNumber: '62901234567',
+  branchCode: '250655',
+  referencePrefix: 'WEG-'
+};

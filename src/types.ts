@@ -29,6 +29,8 @@ export interface CartItem extends MenuItem {
   quantity: number;
 }
 
+export type PaymentMethod = 'cash' | 'card' | 'bank_transfer';
+
 export interface Order {
   id: string;
   items: CartItem[];
@@ -37,9 +39,10 @@ export interface Order {
   cashPaid: number;
   change: number;
   timestamp: number;
-  status: 'pending' | 'accepted' | 'preparing' | 'ready' | 'completed' | 'cancelled';
+  status: 'pending' | 'accepted' | 'preparing' | 'ready' | 'completed' | 'cancelled' | 'awaiting_payment';
   userId: string;
   customerEmail: string;
+  paymentMethod: PaymentMethod;
 }
 
 export interface DailySales {
