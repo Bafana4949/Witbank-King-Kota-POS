@@ -4,7 +4,8 @@ import {
   signInWithEmailAndPassword, 
   createUserWithEmailAndPassword, 
   signOut, 
-  updateProfile 
+  updateProfile,
+  sendPasswordResetEmail
 } from 'firebase/auth';
 import { 
   collection, 
@@ -29,8 +30,8 @@ export type Tab = 'order' | 'admin' | 'kitchen' | 'history' | 'menu';
 interface POSContextType {
   // Auth
   currentUser: User | null;
-  authMode: 'login' | 'signup';
-  setAuthMode: (mode: 'login' | 'signup') => void;
+  authMode: 'login' | 'signup' | 'forgot';
+  setAuthMode: (mode: 'login' | 'signup' | 'forgot') => void;
   showAuthModal: boolean;
   setShowAuthModal: (show: boolean) => void;
   login: (email: string, pass: string) => Promise<void>;
@@ -38,6 +39,7 @@ interface POSContextType {
   logout: () => void;
   authError: string;
   setAuthError: (err: string) => void;
+  resetPassword: (email: string) => Promise<void>;
 
   // Navigation
   activeTab: Tab;
@@ -109,7 +111,7 @@ export function POSProvider({ children }: { children: ReactNode }) {
   const [activeTab, setActiveTab] = useState<Tab>('order');
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [showAuthModal, setShowAuthModal] = useState(true);
-  const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
+  const [authMode, setAuthMode] = useState<'login' | 'signup' | 'forgot'>('login');
   const [authError, setAuthError] = useState('');
 
   const [activeCategory, setActiveCategory] = useState('All');
@@ -262,6 +264,21 @@ export function POSProvider({ children }: { children: ReactNode }) {
         message = 'Please enter a valid email address';
       }
       
+      setAuthError(message);
+      throw error;
+    }
+  };
+
+  const resetPassword = async (email: string) => {
+    setAuthError('');
+    try {
+      await sendPasswordResetEmail(auth, email);
+      addNotification("Reset email sent from VeraConnect! Please check your inbox.");
+    } catch (error: any) {
+      console.error("Reset error:", error.code, error.message);
+      let message = 'Failed to send reset email.';
+      if (error.code === 'auth/user-not-found') message = 'No account found with this email.';
+      else if (error.code === 'auth/invalid-email') message = 'Please enter a valid email address.';
       setAuthError(message);
       throw error;
     }
@@ -453,7 +470,7 @@ export function POSProvider({ children }: { children: ReactNode }) {
 
   return (
     <POSContext.Provider value={{
-      currentUser, authMode, setAuthMode, showAuthModal, setShowAuthModal, login, signup, logout, authError, setAuthError,
+      currentUser, authMode, setAuthMode, showAuthModal, setShowAuthModal, login, signup, logout, resetPassword, authError, setAuthError,
       activeTab, setActiveTab, menuItems, filteredMenuItems, activeCategory, setActiveCategory, searchTerm, setSearchTerm,
       updateMenuItem, toggleAvailability, deleteMenuItem, addMenuItem, cart, addToCart, updateQuantity, removeFromCart,
       resetOrder, cartTotal, cashPaid, setCashPaid, changeDue, submitOrder, orders, updateOrderStatus, parkedOrders,

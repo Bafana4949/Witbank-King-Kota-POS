@@ -23,7 +23,7 @@ export const Modals = () => {
 };
 
 const AuthModal = () => {
-  const { showAuthModal, authMode, setAuthMode, login, signup, authError, setAuthError } = usePOS();
+  const { showAuthModal, authMode, setAuthMode, login, signup, resetPassword, authError, setAuthError } = usePOS();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
@@ -43,7 +43,11 @@ const AuthModal = () => {
     setLoading(true);
     try {
       if (authMode === 'login') await login(email, password);
-      else await signup(email, password, name);
+      else if (authMode === 'signup') await signup(email, password, name);
+      else {
+        await resetPassword(email);
+        setAuthMode('login');
+      }
     } catch (err) {
       // Error handled in context
     } finally {
@@ -67,10 +71,10 @@ const AuthModal = () => {
           
           <div className="text-center mb-8">
             <h2 className="text-3xl font-black text-slate-900 tracking-tight uppercase">
-              {authMode === 'login' ? 'Welcome Back' : 'Join the Grill'}
+              {authMode === 'login' ? 'Welcome Back' : authMode === 'signup' ? 'Join the Grill' : 'Reset Access'}
             </h2>
-            <p className="text-slate-400 font-bold text-xs mt-2 uppercase tracking-widest">
-              {authMode === 'login' ? 'Witbank Express POS System' : 'Create your staff or customer account'}
+            <p className="text-slate-400 font-bold text-[9px] mt-2 uppercase tracking-widest leading-relaxed">
+              {authMode === 'login' ? 'Witbank Express POS System' : authMode === 'signup' ? 'Create your staff or account' : 'You will receive an email from VeraConnect system management'}
             </p>
           </div>
 
@@ -97,16 +101,27 @@ const AuthModal = () => {
                 required
               />
             </div>
-            <div>
-              <input
-                type="password"
-                placeholder="PASSWORD"
-                className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl py-4 px-6 text-sm font-black focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500 transition-all placeholder:text-slate-300"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-            </div>
+            {authMode !== 'forgot' && (
+              <div>
+                <input
+                  type="password"
+                  placeholder="PASSWORD"
+                  className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl py-4 px-6 text-sm font-black focus:ring-4 focus:ring-orange-500/10 focus:border-orange-500 transition-all placeholder:text-slate-300"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+                {authMode === 'login' && (
+                  <button 
+                    type="button"
+                    onClick={() => { setAuthMode('forgot'); setAuthError(''); }}
+                    className="text-[9px] font-black text-slate-400 uppercase mt-2 ml-1 hover:text-orange-500 transition-colors"
+                  >
+                    Forgot Password?
+                  </button>
+                )}
+              </div>
+            )}
 
             {authError && (
               <div className="bg-red-50 text-red-600 p-4 rounded-2xl text-[10px] font-black uppercase leading-relaxed border border-red-100">
@@ -119,17 +134,25 @@ const AuthModal = () => {
               disabled={loading}
               className="w-full bg-slate-900 text-white font-black py-5 rounded-2xl shadow-xl hover:bg-orange-500 transition-all active:scale-[0.98] uppercase tracking-widest text-xs mt-4"
             >
-              {loading ? 'Processing...' : (authMode === 'login' ? 'Authorize System' : 'Create Account')}
+              {loading ? 'Processing...' : (authMode === 'login' ? 'Authorize System' : authMode === 'signup' ? 'Create Account' : 'Send Reset Link')}
             </button>
           </form>
 
-          <div className="mt-8 text-center">
+          <div className="mt-8 text-center space-y-4">
             <button
-              onClick={() => { setAuthMode(authMode === 'login' ? 'signup' : 'login'); setAuthError(''); }}
-              className="text-[10px] font-black text-slate-400 uppercase tracking-widest hover:text-orange-500 transition-colors"
+              onClick={() => { setAuthMode(authMode === 'signup' ? 'login' : 'signup'); setAuthError(''); }}
+              className="text-[10px] font-black text-slate-400 uppercase tracking-widest hover:text-orange-500 transition-colors block w-full"
             >
-              {authMode === 'login' ? "Don't have an account? Sign Up" : "Already have an account? Log In"}
+              {authMode === 'signup' ? "Already have an account? Log In" : "Don't have an account? Sign Up"}
             </button>
+            {authMode === 'forgot' && (
+              <button
+                onClick={() => { setAuthMode('login'); setAuthError(''); }}
+                className="text-[10px] font-black text-orange-500 uppercase tracking-widest hover:underline"
+              >
+                Back to Login
+              </button>
+            )}
           </div>
         </div>
       </motion.div>
